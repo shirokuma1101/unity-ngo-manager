@@ -98,7 +98,7 @@ namespace NGOManager
                 var networkObject = networkPrefab.Prefab.GetComponent<NetworkObject>();
                 if (networkObject.PrefabIdHash.Equals(networkPrefabIdHash))
                 {
-                    Spawn(networkObject, position, rotation, destroyWithScene);
+                    SpawnAsync(networkObject, position, rotation, destroyWithScene).Forget();
                     break;
                 }
             }
@@ -111,7 +111,7 @@ namespace NGOManager
                 var networkObject = networkPrefab.Prefab.GetComponent<NetworkObject>();
                 if (networkObject.PrefabIdHash.Equals(networkPrefabIdHash))
                 {
-                    SpawnAsPlayerObject(networkObject, position, rotation, clientId, destroyWithScene);
+                    SpawnAsPlayerObjectAsync(networkObject, position, rotation, clientId, destroyWithScene).Forget();
                     break;
                 }
             }
@@ -124,7 +124,7 @@ namespace NGOManager
                 var networkObject = networkPrefab.Prefab.GetComponent<NetworkObject>();
                 if (networkObject.PrefabIdHash.Equals(networkPrefabIdHash))
                 {
-                    SpawnWithOwnership(networkObject, position, rotation, clientId, destroyWithScene);
+                    SpawnWithOwnershipAsync(networkObject, position, rotation, clientId, destroyWithScene).Forget();
                     break;
                 }
             }

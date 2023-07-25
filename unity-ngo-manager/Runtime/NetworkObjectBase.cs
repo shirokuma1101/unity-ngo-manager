@@ -4,8 +4,13 @@ namespace NGOManager
 {
     public class NetworkObjectBase : NetworkBehaviour, INetworkObjectEventFunctions
     {
-        public GenericNetworkStateMachine StateMachine { get; }
+        public GenericNetworkStateMachine StateMachine { get; private set; }
 
+
+        protected virtual void Awake()
+        {
+            StateMachine = GetComponent<GenericNetworkStateMachine>();
+        }
 
         public virtual void OnStart() { }
         public virtual void OnFixedUpdate() { }

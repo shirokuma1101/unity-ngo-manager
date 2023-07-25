@@ -6,7 +6,7 @@ namespace NGOManager
     {
         public abstract class StateBase : INetworkObjectEventFunctions
         {
-            public NetworkBehaviour Owner { get; private set; }
+            public NetworkBehaviour Owner { get; protected set; }
 
 
             public abstract void Initialize(GenericNetworkStateMachine genericNetworkStateMachine);

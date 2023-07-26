@@ -10,6 +10,8 @@ namespace NGOManager
 
         private IList<NetworkObjectBase> networkObjectBases;
         public ReadOnlyCollection<NetworkObjectBase> NetworkObjectBases { get; private set; }
+        private IList<GenericNetworkStateMachine> networkStateMachines;
+        public ReadOnlyCollection<GenericNetworkStateMachine> NetworkStateMachines { get; private set; }
 
 
         protected override void Awake()
@@ -18,6 +20,8 @@ namespace NGOManager
 
             networkObjectBases = new List<NetworkObjectBase>();
             NetworkObjectBases = new ReadOnlyCollection<NetworkObjectBase>(networkObjectBases);
+            networkStateMachines = new List<GenericNetworkStateMachine>();
+            NetworkStateMachines = new ReadOnlyCollection<GenericNetworkStateMachine>(networkStateMachines);
         }
 
         private void Update()
@@ -33,17 +37,17 @@ namespace NGOManager
                 {
                     networkObject.OnOwnerPreUpdate();
                 }
-                if (networkObject.StateMachine != null)
+            }
+            foreach (var networkStateMachine in NetworkStateMachines)
+            {
+                networkStateMachine.State?.OnPreUpdate();
+                if (networkStateMachine.IsHost)
                 {
-                    networkObject.StateMachine.State?.OnPreUpdate();
-                    if (networkObject.IsHost)
-                    {
-                        networkObject.StateMachine.State?.OnHostPreUpdate();
-                    }
-                    if (networkObject.IsOwner)
-                    {
-                        networkObject.StateMachine.State?.OnOwnerPreUpdate();
-                    }
+                    networkStateMachine.State?.OnHostPreUpdate();
+                }
+                if (networkStateMachine.IsOwner)
+                {
+                    networkStateMachine.State?.OnOwnerPreUpdate();
                 }
             }
             foreach (var networkObject in NetworkObjectBases)
@@ -57,17 +61,17 @@ namespace NGOManager
                 {
                     networkObject.OnOwnerUpdate();
                 }
-                if (networkObject.StateMachine != null)
+            }
+            foreach (var networkStateMachine in NetworkStateMachines)
+            {
+                networkStateMachine.State?.OnUpdate();
+                if (networkStateMachine.IsHost)
                 {
-                    networkObject.StateMachine.State?.OnUpdate();
-                    if (networkObject.IsHost)
-                    {
-                        networkObject.StateMachine.State?.OnHostUpdate();
-                    }
-                    if (networkObject.IsOwner)
-                    {
-                        networkObject.StateMachine.State?.OnOwnerUpdate();
-                    }
+                    networkStateMachine.State?.OnHostUpdate();
+                }
+                if (networkStateMachine.IsOwner)
+                {
+                    networkStateMachine.State?.OnOwnerUpdate();
                 }
             }
         }
@@ -85,17 +89,17 @@ namespace NGOManager
                 {
                     networkObject.OnOwnerLateUpdate();
                 }
-                if (networkObject.StateMachine != null)
+            }
+            foreach (var networkStateMachine in NetworkStateMachines)
+            {
+                networkStateMachine.State?.OnLateUpdate();
+                if (networkStateMachine.IsHost)
                 {
-                    networkObject.StateMachine.State?.OnLateUpdate();
-                    if (networkObject.IsHost)
-                    {
-                        networkObject.StateMachine.State?.OnHostLateUpdate();
-                    }
-                    if (networkObject.IsOwner)
-                    {
-                        networkObject.StateMachine.State?.OnOwnerLateUpdate();
-                    }
+                    networkStateMachine.State?.OnHostLateUpdate();
+                }
+                if (networkStateMachine.IsOwner)
+                {
+                    networkStateMachine.State?.OnOwnerLateUpdate();
                 }
             }
         }
@@ -113,17 +117,17 @@ namespace NGOManager
                 {
                     networkObject.OnOwnerFixedUpdate();
                 }
-                if (networkObject.StateMachine != null)
+            }
+            foreach (var networkStateMachine in NetworkStateMachines)
+            {
+                networkStateMachine.State?.OnFixedUpdate();
+                if (networkStateMachine.IsHost)
                 {
-                    networkObject.StateMachine.State?.OnFixedUpdate();
-                    if (networkObject.IsHost)
-                    {
-                        networkObject.StateMachine.State?.OnHostFixedUpdate();
-                    }
-                    if (networkObject.IsOwner)
-                    {
-                        networkObject.StateMachine.State?.OnOwnerFixedUpdate();
-                    }
+                    networkStateMachine.State?.OnHostFixedUpdate();
+                }
+                if (networkStateMachine.IsOwner)
+                {
+                    networkStateMachine.State?.OnOwnerFixedUpdate();
                 }
             }
         }
@@ -141,16 +145,19 @@ namespace NGOManager
             {
                 networkObjectBase.OnOwnerStart();
             }
-            if (networkObjectBase.StateMachine != null)
+
+            foreach (var networkStateMachine in networkObjectBase.GetComponentsInChildren<GenericNetworkStateMachine>())
             {
-                networkObjectBase.StateMachine.State?.OnStart();
-                if (networkObjectBase.IsHost)
+                networkStateMachines.Add(networkStateMachine);
+
+                networkStateMachine.State?.OnStart();
+                if (networkStateMachine.IsHost)
                 {
-                    networkObjectBase.StateMachine.State?.OnHostStart();
+                    networkStateMachine.State?.OnHostStart();
                 }
-                if (networkObjectBase.NetworkObject.IsOwner)
+                if (networkStateMachine.IsOwner)
                 {
-                    networkObjectBase.StateMachine.State?.OnOwnerStart();
+                    networkStateMachine.State?.OnOwnerStart();
                 }
             }
         }
@@ -158,6 +165,7 @@ namespace NGOManager
         public void UnregisterNetworkObject(NetworkObjectBase networkObjectBase)
         {
             networkObjectBases.Remove(networkObjectBase);
+
             networkObjectBase.OnEnd();
             if (networkObjectBase.IsHost)
             {
@@ -167,16 +175,19 @@ namespace NGOManager
             {
                 networkObjectBase.OnOwnerEnd();
             }
-            if (networkObjectBase.StateMachine != null)
+
+            foreach (var networkStateMachine in networkObjectBase.GetComponentsInChildren<GenericNetworkStateMachine>())
             {
-                networkObjectBase.StateMachine.State?.OnEnd();
-                if (networkObjectBase.IsHost)
+                networkStateMachines.Remove(networkStateMachine);
+
+                networkStateMachine.State?.OnEnd();
+                if (networkStateMachine.IsHost)
                 {
-                    networkObjectBase.StateMachine.State?.OnHostEnd();
+                    networkStateMachine.State?.OnHostEnd();
                 }
-                if (networkObjectBase.IsOwner)
+                if (networkStateMachine.IsOwner)
                 {
-                    networkObjectBase.StateMachine.State?.OnOwnerEnd();
+                    networkStateMachine.State?.OnOwnerEnd();
                 }
             }
         }
@@ -184,6 +195,7 @@ namespace NGOManager
         public void ClearNetworkObjects()
         {
             networkObjectBases.Clear();
+            networkStateMachines.Clear();
         }
     }
 }

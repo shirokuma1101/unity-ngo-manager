@@ -84,7 +84,7 @@ namespace NGOManager
 
         private void OnObjectSpawned(NetworkObject spawnedNetworkObject)
         {
-            foreach (var networkObjectBase in spawnedNetworkObject.GetComponents<NetworkObjectBase>())
+            foreach (var networkObjectBase in spawnedNetworkObject.GetComponentsInChildren<NetworkObjectBase>())
             {
                 NetworkObjectManager.Instance.RegisterNetworkObject(networkObjectBase);
             }

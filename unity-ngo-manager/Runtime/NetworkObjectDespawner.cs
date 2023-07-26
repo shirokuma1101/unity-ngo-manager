@@ -29,7 +29,7 @@ namespace NGOManager
 
         private void OnObjectDespawned(NetworkObject despawnedNetworkObject)
         {
-            foreach (var networkObjectbase in despawnedNetworkObject.GetComponents<NetworkObjectBase>())
+            foreach (var networkObjectbase in despawnedNetworkObject.GetComponentsInChildren<NetworkObjectBase>())
             {
                 NetworkObjectManager.Instance.UnregisterNetworkObject(networkObjectbase);
             }

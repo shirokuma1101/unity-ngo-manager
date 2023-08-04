@@ -21,11 +21,17 @@ UnityPackageManagerのAdd package from git URLから以下のURLを追加
 ## Usage
 
 ```cs
+using System;
+using NGOManager;
+using Unity.Netcode;
+using UnityEngine;
+
 public class SamplePlayer : NetworkObjectBase
 {
     [SerializeField]
     private GameObject cameraPrefab;
 
+    public float MoveSpeed { get; set; }
 
     public override void OnOwnerStart()
     {
@@ -34,12 +40,68 @@ public class SamplePlayer : NetworkObjectBase
 
     public override void OnHostStart()
     {
-        GameController.Instance.StartGame();
+        TimerController.Instance.StartTimer();
     }
 
-    public override void OnOwnerUpdate()
+    public class ASSampleBase : GenericNetworkStateMachine.StateBase
     {
-        // do something
+        protected SamplePlayer Owner { get; private set; }
+
+        public override void Initialize(GenericNetworkStateMachine stateMachine)
+        {
+            Owner = stateMachine.GetComponent<SamplePlayer>();
+            base.Owner = Owner;
+        }
+    }
+
+    // 待機
+    [Serializable]
+    public class ASSampleIdle : ASSampleBase
+    {
+        public override void OnOwnerEnter()
+        {
+            Owner.MoveSpeed = 0;
+        }
+    }
+
+    // 歩き
+    [Serializable]
+    public class ASSampleWalk : ASSampleBase
+    {
+        public override void OnOwnerEnter()
+        {
+            Owner.MoveSpeed = 1;
+        }
+
+        public override void OnOwnerFixedUpdate()
+        {
+            Owner.transform.Translate(Owner.MoveSpeed, 0, 0);
+        }
+
+        public override void OnOwnerExit()
+        {
+            Owner.MoveSpeed = 0;
+        }
+    }
+}
+
+public class SampleController : NetworkBehaviour
+{
+    [SerializeField]
+    private GameObject playerPrefab;
+    [SerializeField]
+    private GameObject equipmentPrefab;
+    [SerializeField]
+    private GameObject enemyPrefab;
+
+    private async void Start()
+    {
+        await NetworkObjectSpawner.SpawnAsPlayerAsync(
+            playerPrefab, Vector3.zero, Quaternion.identity, NetworkManager.Singleton.LocalClientId);
+        await NetworkObjectSpawner.SpawnWithOwnershipAsync(
+            equipmentPrefab, Vector3.zero, Quaternion.identity, NetworkManager.Singleton.LocalClientId);
+        await NetworkObjectSpawner.SpawnAsync(
+            enemyPrefab, Vector3.zero, Quaternion.identity);
     }
 }
 ```

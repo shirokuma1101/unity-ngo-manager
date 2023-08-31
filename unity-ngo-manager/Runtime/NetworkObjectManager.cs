@@ -8,11 +8,14 @@ namespace NGOManager
     {
         //TODO: Use reflection to determine if a function is present when added and store it in each list
 
-        private IList<NetworkObjectBase> networkObjectBases;
         public ReadOnlyCollection<NetworkObjectBase> NetworkObjectBases { get; private set; }
-        private IList<GenericNetworkStateMachine> networkStateMachines;
         public ReadOnlyCollection<GenericNetworkStateMachine> NetworkStateMachines { get; private set; }
+        public NetworkObjectBase LocalPlayer { get; private set; }
+        public ReadOnlyCollection<NetworkObjectBase> RemotePlayers { get; private set; }
 
+        private IList<NetworkObjectBase> networkObjectBases;
+        private IList<GenericNetworkStateMachine> networkStateMachines;
+        private IList<NetworkObjectBase> remotePlayers;
 
         protected override void Awake()
         {
@@ -22,6 +25,8 @@ namespace NGOManager
             NetworkObjectBases = new ReadOnlyCollection<NetworkObjectBase>(networkObjectBases);
             networkStateMachines = new List<GenericNetworkStateMachine>();
             NetworkStateMachines = new ReadOnlyCollection<GenericNetworkStateMachine>(networkStateMachines);
+            remotePlayers = new List<NetworkObjectBase>();
+            RemotePlayers = new ReadOnlyCollection<NetworkObjectBase>(remotePlayers);
         }
 
         private void Update()
@@ -136,6 +141,18 @@ namespace NGOManager
         {
             networkObjectBases.Add(networkObjectBase);
 
+            if (networkObjectBase.NetworkObject.IsPlayerObject)
+            {
+                if (networkObjectBase.NetworkObject.IsOwner)
+                {
+                    LocalPlayer = networkObjectBase;
+                }
+                else
+                {
+                    remotePlayers.Add(networkObjectBase);
+                }
+            }
+
             networkObjectBase.OnStart();
             if (networkObjectBase.IsHost)
             {
@@ -165,6 +182,18 @@ namespace NGOManager
         public void UnregisterNetworkObject(NetworkObjectBase networkObjectBase)
         {
             networkObjectBases.Remove(networkObjectBase);
+
+            if (networkObjectBase.NetworkObject.IsPlayerObject)
+            {
+                if (networkObjectBase.NetworkObject.IsOwner)
+                {
+                    LocalPlayer = null;
+                }
+                else
+                {
+                    remotePlayers.Remove(networkObjectBase);
+                }
+            }
 
             networkObjectBase.OnEnd();
             if (networkObjectBase.IsHost)

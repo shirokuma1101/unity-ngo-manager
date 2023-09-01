@@ -12,6 +12,10 @@ namespace NGOManager
         public ReadOnlyCollection<GenericNetworkStateMachine> NetworkStateMachines { get; private set; }
         public NetworkObjectBase LocalPlayer { get; private set; }
         public ReadOnlyCollection<NetworkObjectBase> RemotePlayers { get; private set; }
+        public Action<NetworkObjectBase> LocalPlayerSpawned
+        public Action<NetworkObjectBase> LocalPlayerDespawned
+        public Action<NetworkObjectBase> RemotePlayerSpawned
+        public Action<NetworkObjectBase> RemotePlayerDespawned
 
         private IList<NetworkObjectBase> networkObjectBases;
         private IList<GenericNetworkStateMachine> networkStateMachines;
@@ -146,10 +150,12 @@ namespace NGOManager
                 if (networkObjectBase.NetworkObject.IsOwner)
                 {
                     LocalPlayer = networkObjectBase;
+                    LocalPlayerSpawned?.Invoke(LocalPlayer);
                 }
                 else
                 {
                     remotePlayers.Add(networkObjectBase);
+                    RemotePlayerSpawned?.Invoke(networkObjectBase);
                 }
             }
 
@@ -188,10 +194,12 @@ namespace NGOManager
                 if (networkObjectBase.NetworkObject.IsOwner)
                 {
                     LocalPlayer = null;
+                    LocalPlayerDespawned?.Invoke(networkObjectBase);
                 }
                 else
                 {
                     remotePlayers.Remove(networkObjectBase);
+                    RemotePlayerDespawned?.Invoke(networkObjectBase);
                 }
             }
 

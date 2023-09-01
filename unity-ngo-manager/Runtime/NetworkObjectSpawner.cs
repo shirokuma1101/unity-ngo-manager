@@ -83,12 +83,7 @@ namespace NGOManager
         }
 
         private void OnObjectSpawned(NetworkObject spawnedNetworkObject)
-        {
-            foreach (var networkObjectBase in spawnedNetworkObject.GetComponentsInChildren<NetworkObjectBase>())
-            {
-                NetworkObjectManager.Instance.RegisterNetworkObject(networkObjectBase);
-            }
-        }
+            => NetworkObjectManager.Instance.RegisterNetworkObject(spawnedNetworkObject);
 
         [ServerRpc(RequireOwnership = false)]
         private void SpawnServerRpc(uint networkPrefabIdHash, Vector3 position, Quaternion rotation, bool destroyWithScene = false)

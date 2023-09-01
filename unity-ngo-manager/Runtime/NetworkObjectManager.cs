@@ -2,6 +2,7 @@ using NGOManager.Utility.Singleton;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Unity.Netcode;
 
 namespace NGOManager
 {
@@ -11,16 +12,18 @@ namespace NGOManager
 
         public ReadOnlyCollection<NetworkObjectBase> NetworkObjectBases { get; private set; }
         public ReadOnlyCollection<GenericNetworkStateMachine> NetworkStateMachines { get; private set; }
-        public NetworkObjectBase LocalPlayer { get; private set; }
-        public ReadOnlyCollection<NetworkObjectBase> RemotePlayers { get; private set; }
-        public Action<NetworkObjectBase> LocalPlayerSpawned;
-        public Action<NetworkObjectBase> LocalPlayerDespawned;
-        public Action<NetworkObjectBase> RemotePlayerSpawned;
-        public Action<NetworkObjectBase> RemotePlayerDespawned;
+        public NetworkObject LocalPlayer { get; private set; }
+        public ReadOnlyCollection<NetworkObject> RemotePlayers { get; private set; }
+        public Action<NetworkObject> OnLocalPlayerSpawned = null;
+        public Action<NetworkObject> OnLocalPlayerDespawned = null;
+        public Action<NetworkObject> OnRemotePlayerSpawned = null;
+        public Action<NetworkObject> OnRemotePlayerDespawned = null;
+        public Action OnAllPlayersSpawned = null;
+		public Action OnAllPlayersDespawned = null;
 
         private IList<NetworkObjectBase> networkObjectBases;
         private IList<GenericNetworkStateMachine> networkStateMachines;
-        private IList<NetworkObjectBase> remotePlayers;
+        private IList<NetworkObject> remotePlayers;
 
         protected override void Awake()
         {
@@ -30,8 +33,8 @@ namespace NGOManager
             NetworkObjectBases = new ReadOnlyCollection<NetworkObjectBase>(networkObjectBases);
             networkStateMachines = new List<GenericNetworkStateMachine>();
             NetworkStateMachines = new ReadOnlyCollection<GenericNetworkStateMachine>(networkStateMachines);
-            remotePlayers = new List<NetworkObjectBase>();
-            RemotePlayers = new ReadOnlyCollection<NetworkObjectBase>(remotePlayers);
+            remotePlayers = new List<NetworkObject>();
+            RemotePlayers = new ReadOnlyCollection<NetworkObject>(remotePlayers);
         }
 
         private void Update()
@@ -142,23 +145,35 @@ namespace NGOManager
             }
         }
 
-        public void RegisterNetworkObject(NetworkObjectBase networkObjectBase)
+        public void RegisterNetworkObject(NetworkObject networkObject)
         {
-            networkObjectBases.Add(networkObjectBase);
-
-            if (networkObjectBase.NetworkObject.IsPlayerObject)
+            foreach (var networkObjectBase in networkObject.GetComponentsInChildren<NetworkObjectBase>())
             {
-                if (networkObjectBase.NetworkObject.IsOwner)
+                RegisterNetworkObject(networkObjectBase);
+            }
+
+            if (networkObject.IsPlayerObject)
+            {
+                if (networkObject.IsOwner)
                 {
-                    LocalPlayer = networkObjectBase;
-                    LocalPlayerSpawned?.Invoke(LocalPlayer);
+                    LocalPlayer = networkObject;
+                    OnLocalPlayerSpawned?.Invoke(LocalPlayer);
                 }
                 else
                 {
-                    remotePlayers.Add(networkObjectBase);
-                    RemotePlayerSpawned?.Invoke(networkObjectBase);
+                    remotePlayers.Add(networkObject);
+                    OnRemotePlayerSpawned?.Invoke(networkObject);
+                }
+
+                if (LocalPlayer != null && remotePlayers.Count == NetworkManager.Singleton.ConnectedClientsList.Count - 1)
+                {
+                    OnAllPlayersSpawned?.Invoke();
                 }
             }
+        }
+        public void RegisterNetworkObject(NetworkObjectBase networkObjectBase)
+        {
+            networkObjectBases.Add(networkObjectBase);
 
             networkObjectBase.OnStart();
             if (networkObjectBase.IsHost)
@@ -186,23 +201,35 @@ namespace NGOManager
             }
         }
 
-        public void UnregisterNetworkObject(NetworkObjectBase networkObjectBase)
+        public void UnregisterNetworkObject(NetworkObject networkObject)
         {
-            networkObjectBases.Remove(networkObjectBase);
-
-            if (networkObjectBase.NetworkObject.IsPlayerObject)
+            foreach (var networkObjectBase in networkObject.GetComponentsInChildren<NetworkObjectBase>())
             {
-                if (networkObjectBase.NetworkObject.IsOwner)
+                UnregisterNetworkObject(networkObjectBase);
+            }
+
+            if (networkObject.IsPlayerObject)
+            {
+                if (networkObject.IsOwner)
                 {
                     LocalPlayer = null;
-                    LocalPlayerDespawned?.Invoke(networkObjectBase);
+                    OnLocalPlayerDespawned?.Invoke(networkObject);
                 }
                 else
                 {
-                    remotePlayers.Remove(networkObjectBase);
-                    RemotePlayerDespawned?.Invoke(networkObjectBase);
+                    remotePlayers.Remove(networkObject);
+                    OnRemotePlayerDespawned?.Invoke(networkObject);
+                }
+
+                if (LocalPlayer == null && remotePlayers.Count == 0)
+                {
+                    OnAllPlayersDespawned?.Invoke();
                 }
             }
+        }
+        public void UnregisterNetworkObject(NetworkObjectBase networkObjectBase)
+        {
+            networkObjectBases.Remove(networkObjectBase);
 
             networkObjectBase.OnEnd();
             if (networkObjectBase.IsHost)

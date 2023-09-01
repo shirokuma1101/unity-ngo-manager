@@ -28,7 +28,7 @@ namespace NGOManager
         }
 
         private void OnObjectDespawned(NetworkObject despawnedNetworkObject)
-            => NetworkObjectManager.Instance.UnRegisterNetworkObject(despawnedNetworkObject);
+            => NetworkObjectManager.Instance.UnregisterNetworkObject(despawnedNetworkObject);
 
         [ServerRpc(RequireOwnership = false)]
         private void DespawnServerRpc(ulong networkObjectId)

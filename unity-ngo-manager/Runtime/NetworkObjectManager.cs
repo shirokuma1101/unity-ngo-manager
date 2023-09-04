@@ -6,7 +6,7 @@ using Unity.Netcode;
 
 namespace NGOManager
 {
-    public class NetworkObjectManager : SingletonPersistent<NetworkObjectManager>
+    public class NetworkObjectManager : SingletonNetworkPersistent<NetworkObjectManager>
     {
         //TODO: Use reflection to determine if a function is present when added and store it in each list
 
@@ -19,11 +19,13 @@ namespace NGOManager
         public Action<NetworkObject> OnRemotePlayerSpawned = null;
         public Action<NetworkObject> OnRemotePlayerDespawned = null;
         public Action OnAllPlayersSpawned = null;
-		public Action OnAllPlayersDespawned = null;
+        public Action OnAllPlayersDespawned = null;
 
         private IList<NetworkObjectBase> networkObjectBases;
         private IList<GenericNetworkStateMachine> networkStateMachines;
         private IList<NetworkObject> remotePlayers;
+
+        private int connectedClientCount = 0;
 
         protected override void Awake()
         {
@@ -35,6 +37,12 @@ namespace NGOManager
             NetworkStateMachines = new ReadOnlyCollection<GenericNetworkStateMachine>(networkStateMachines);
             remotePlayers = new List<NetworkObject>();
             RemotePlayers = new ReadOnlyCollection<NetworkObject>(remotePlayers);
+        }
+
+        private void Start()
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
         }
 
         private void Update()
@@ -145,6 +153,16 @@ namespace NGOManager
             }
         }
 
+        private void OnDestroy()
+        {
+            if (NetworkManager.Singleton.IsHost)
+            {
+                NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+            }
+        }
+
+
         public void RegisterNetworkObject(NetworkObject networkObject)
         {
             foreach (var networkObjectBase in networkObject.GetComponentsInChildren<NetworkObjectBase>())
@@ -165,7 +183,7 @@ namespace NGOManager
                     OnRemotePlayerSpawned?.Invoke(networkObject);
                 }
 
-                if (LocalPlayer != null && remotePlayers.Count == NetworkManager.Singleton.ConnectedClientsList.Count - 1)
+                if (LocalPlayer != null && remotePlayers.Count == connectedClientCount - 1)
                 {
                     OnAllPlayersSpawned?.Invoke();
                 }
@@ -261,6 +279,36 @@ namespace NGOManager
         {
             networkObjectBases.Clear();
             networkStateMachines.Clear();
+        }
+
+        private void OnClientConnected(ulong clientId)
+        {
+            if (NetworkManager.Singleton.IsHost)
+            {
+                UpdateConnectedClientCountClientRpc(++connectedClientCount);
+            }
+            else
+            {
+                NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+            }
+        }
+
+        private void OnClientDisconnect(ulong clientId)
+        {
+            if (NetworkManager.Singleton.IsHost)
+            {
+                UpdateConnectedClientCountClientRpc(--connectedClientCount);
+            }
+            else
+            {
+                NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+            }
+        }
+
+        [ClientRpc]
+        private void UpdateConnectedClientCountClientRpc(int count)
+        {
+            connectedClientCount = count;
         }
     }
 }

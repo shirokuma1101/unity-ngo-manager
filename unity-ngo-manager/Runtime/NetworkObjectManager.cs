@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using NGOManager.Utility.Singleton;
 using System;
 using System.Collections.Generic;
@@ -9,11 +10,12 @@ namespace NGOManager
     public class NetworkObjectManager : SingletonNetworkPersistent<NetworkObjectManager>
     {
         //TODO: Use reflection to determine if a function is present when added and store it in each list
-
         public ReadOnlyCollection<NetworkObjectBase> NetworkObjectBases { get; private set; }
         public ReadOnlyCollection<GenericNetworkStateMachine> NetworkStateMachines { get; private set; }
         public NetworkObject LocalPlayer { get; private set; }
         public ReadOnlyCollection<NetworkObject> RemotePlayers { get; private set; }
+        public int ConnectedClientCount { get; private set; }
+
         public Action<NetworkObject> OnLocalPlayerSpawned = null;
         public Action<NetworkObject> OnLocalPlayerDespawned = null;
         public Action<NetworkObject> OnRemotePlayerSpawned = null;
@@ -25,8 +27,6 @@ namespace NGOManager
         private IList<GenericNetworkStateMachine> networkStateMachines;
         private IList<NetworkObject> remotePlayers;
 
-        private int connectedClientCount = 0;
-
         protected override void Awake()
         {
             base.Awake();
@@ -37,12 +37,6 @@ namespace NGOManager
             NetworkStateMachines = new ReadOnlyCollection<GenericNetworkStateMachine>(networkStateMachines);
             remotePlayers = new List<NetworkObject>();
             RemotePlayers = new ReadOnlyCollection<NetworkObject>(remotePlayers);
-        }
-
-        private void Start()
-        {
-            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
-            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
         }
 
         private void Update()
@@ -153,15 +147,25 @@ namespace NGOManager
             }
         }
 
-        private void OnDestroy()
+
+        public void Initialize()
         {
-            if (NetworkManager.Singleton.IsHost)
-            {
-                NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
-                NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
-            }
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+
+            NetworkObjectSpawner.InitializeAsync();
         }
 
+        public void Shutdown()
+        {
+            networkObjectBases.Clear();
+            networkStateMachines.Clear();
+
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+
+            NetworkObjectSpawner.Shutdown();
+        }
 
         public void RegisterNetworkObject(NetworkObject networkObject)
         {
@@ -183,7 +187,7 @@ namespace NGOManager
                     OnRemotePlayerSpawned?.Invoke(networkObject);
                 }
 
-                if (LocalPlayer != null && remotePlayers.Count == connectedClientCount - 1)
+                if (LocalPlayer != null && remotePlayers.Count == ConnectedClientCount - 1)
                 {
                     OnAllPlayersSpawned?.Invoke();
                 }
@@ -275,17 +279,11 @@ namespace NGOManager
             }
         }
 
-        public void ClearNetworkObjects()
-        {
-            networkObjectBases.Clear();
-            networkStateMachines.Clear();
-        }
-
         private void OnClientConnected(ulong clientId)
         {
             if (NetworkManager.Singleton.IsHost)
             {
-                UpdateConnectedClientCountClientRpc(++connectedClientCount);
+                UpdateConnectedClientCountClientRpc(++ConnectedClientCount);
             }
             else
             {
@@ -297,7 +295,7 @@ namespace NGOManager
         {
             if (NetworkManager.Singleton.IsHost)
             {
-                UpdateConnectedClientCountClientRpc(--connectedClientCount);
+                UpdateConnectedClientCountClientRpc(--ConnectedClientCount);
             }
             else
             {
@@ -307,8 +305,6 @@ namespace NGOManager
 
         [ClientRpc]
         private void UpdateConnectedClientCountClientRpc(int count)
-        {
-            connectedClientCount = count;
-        }
+            => ConnectedClientCount = count;
     }
 }

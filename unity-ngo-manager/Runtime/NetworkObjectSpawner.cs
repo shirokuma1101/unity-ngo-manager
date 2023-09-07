@@ -1,10 +1,11 @@
 using Cysharp.Threading.Tasks;
+using NGOManager.Utility.Singleton;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace NGOManager
 {
-    public static class NetworkObjectSpawner
+    public class NetworkObjectSpawner : SingletonNetworkPersistent<NetworkObjectSpawner>
     {
         public static async void InitializeAsync()
         {
@@ -33,7 +34,7 @@ namespace NGOManager
             {
                 var cancelToken = NetworkObjectManager.Instance.GetCancellationTokenOnDestroy();
 
-                SpawnServerRpc(networkPrefab.PrefabIdHash, position, rotation, destroyWithScene);
+                Instance.SpawnServerRpc(networkPrefab.PrefabIdHash, position, rotation, destroyWithScene);
                 await UniTask.WaitUntil(() => NetworkManager.Singleton.SpawnManager.SpawnedObjects.ContainsKey(networkPrefab.NetworkObjectId), cancellationToken: cancelToken);
                 return NetworkManager.Singleton.SpawnManager.SpawnedObjects[networkPrefab.NetworkObjectId].gameObject;
             }
@@ -55,7 +56,7 @@ namespace NGOManager
             {
                 var cancelToken = NetworkObjectManager.Instance.GetCancellationTokenOnDestroy();
 
-                SpawnAsPlayerObjectServerRpc(networkPrefab.PrefabIdHash, position, rotation, clientId, destroyWithScene);
+                Instance.SpawnAsPlayerObjectServerRpc(networkPrefab.PrefabIdHash, position, rotation, clientId, destroyWithScene);
                 await UniTask.WaitUntil(() => NetworkManager.Singleton.SpawnManager.SpawnedObjects.ContainsKey(networkPrefab.NetworkObjectId), cancellationToken: cancelToken);
                 return NetworkManager.Singleton.SpawnManager.SpawnedObjects[networkPrefab.NetworkObjectId].gameObject;
             }
@@ -77,7 +78,7 @@ namespace NGOManager
             {
                 var cancelToken = NetworkObjectManager.Instance.GetCancellationTokenOnDestroy();
 
-                SpawnWithOwnershipServerRpc(networkPrefab.PrefabIdHash, position, rotation, clientId, destroyWithScene);
+                Instance.SpawnWithOwnershipServerRpc(networkPrefab.PrefabIdHash, position, rotation, clientId, destroyWithScene);
                 await UniTask.WaitUntil(() => NetworkManager.Singleton.SpawnManager.SpawnedObjects.ContainsKey(networkPrefab.NetworkObjectId), cancellationToken: cancelToken);
                 return NetworkManager.Singleton.SpawnManager.SpawnedObjects[networkPrefab.NetworkObjectId].gameObject;
             }
@@ -91,7 +92,7 @@ namespace NGOManager
             }
             else
             {
-                DespawnServerRpc(networkObject.NetworkObjectId);
+                Instance.DespawnServerRpc(networkObject.NetworkObjectId);
             }
         }
 
@@ -102,7 +103,7 @@ namespace NGOManager
             => NetworkObjectManager.Instance.UnregisterNetworkObject(despawnedNetworkObject);
 
         [ServerRpc(RequireOwnership = false)]
-        private static void SpawnServerRpc(uint networkPrefabIdHash, Vector3 position, Quaternion rotation, bool destroyWithScene = false)
+        private void SpawnServerRpc(uint networkPrefabIdHash, Vector3 position, Quaternion rotation, bool destroyWithScene = false)
         {
             foreach (var networkPrefab in NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs)
             {
@@ -115,7 +116,7 @@ namespace NGOManager
             }
         }
         [ServerRpc(RequireOwnership = false)]
-        private static void SpawnAsPlayerObjectServerRpc(uint networkPrefabIdHash, Vector3 position, Quaternion rotation, ulong clientId, bool destroyWithScene = false)
+        private void SpawnAsPlayerObjectServerRpc(uint networkPrefabIdHash, Vector3 position, Quaternion rotation, ulong clientId, bool destroyWithScene = false)
         {
             foreach (var networkPrefab in NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs)
             {
@@ -128,7 +129,7 @@ namespace NGOManager
             }
         }
         [ServerRpc(RequireOwnership = false)]
-        private static void SpawnWithOwnershipServerRpc(uint networkPrefabIdHash, Vector3 position, Quaternion rotation, ulong clientId, bool destroyWithScene = false)
+        private void SpawnWithOwnershipServerRpc(uint networkPrefabIdHash, Vector3 position, Quaternion rotation, ulong clientId, bool destroyWithScene = false)
         {
             foreach (var networkPrefab in NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs)
             {
@@ -142,7 +143,7 @@ namespace NGOManager
         }
 
         [ServerRpc(RequireOwnership = false)]
-        private static void DespawnServerRpc(ulong networkObjectId)
+        private void DespawnServerRpc(ulong networkObjectId)
         {
             if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out var networkObject))
             {

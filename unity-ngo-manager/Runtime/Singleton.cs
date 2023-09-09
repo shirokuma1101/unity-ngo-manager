@@ -63,7 +63,17 @@ namespace NGOManager.Utility.Singleton
     /// <typeparam name="T"></typeparam>
     public static class SingletonAttacher<T> where T : Component
     {
-        public static T Instance => instance ??= Object.FindObjectOfType<T>(true);
+        public static T Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = Object.FindAnyObjectByType<T>();
+                }
+                return instance;
+            }
+        }
 
         private static T instance;
     }

@@ -161,6 +161,13 @@ namespace NGOManager
             networkObjectBases.Clear();
             networkStateMachines.Clear();
 
+            OnLocalPlayerSpawned = null;
+            OnLocalPlayerDespawned = null;
+            OnRemotePlayerSpawned = null;
+            OnRemotePlayerDespawned = null;
+            OnAllPlayersSpawned = null;
+            OnAllPlayersDespawned = null;
+
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
 

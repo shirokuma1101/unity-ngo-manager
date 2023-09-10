@@ -2,21 +2,25 @@
 
 `Unity Netcode for GameObjects`の`NetworkObject`を管理するライブラリ
 
+## Features
+
+- Spawn/Despawn時のNetworkObjectを自動管理
+- 関数ベースで処理を分けることが可能
+- Client側からSpawn(AsPlayerObject/WithOwnership)Async関数を呼ぶことが可能
+- Client側からSpawn済みObjectListを取得可能
+- Client側から(Local/Remote)Playerを取得可能
+- (Local/Remote)PlayerSpawn時のAction(Callback)を追加可能
+- GenericNetworkStateMachineに対応
+
 ## Instllation
 
-UnityPackageManagerのAdd package from git URLから以下のURLを追加
+UnityPackageManagerの`Add package from git URL`から以下のURLを追加
 
 - `https://github.com/shirokuma1101/com.unity.netcode.gameobjects.git?path=/com.unity.netcode.gameobjects#1.5.1-extension`
 
 - `https://github.com/shirokuma1101/unity-ngo-manager.git?path=/unity-ngo-manager`
 
 ⚠ このライブラリは`Unity Netcode for GameObjects`のFork先のBranch`1.5.1-extension`の機能を利用しているため、公式Packageでは機能しません。
-
-## Features
-
-- クライアント側からSpawn(AsPlayerObject/WithOwnership)Async関数を呼ぶ
-- 関数ベースで処理を分ける
-- GenericNetworkStateMachineに対応
 
 ## Usage
 
@@ -28,33 +32,36 @@ using UnityEngine;
 
 public class SamplePlayer : NetworkObjectBase
 {
-    [SerializeField]
-    private GameObject cameraPrefab;
-
     public float MoveSpeed { get; set; }
 
     public override void OnOwnerStart()
     {
-        Instantiate(cameraPrefab);
+        // This function is called only on the owner.
+        // etc:
+        //      Instantiate a camera that follows the player.
+
     }
 
     public override void OnHostStart()
     {
-        TimerController.Instance.StartTimer();
+        // This function is called only on the host.
+        // etc:
+        //      Starting the game progress timer.
     }
 
     public class ASSampleBase : GenericNetworkStateMachine.StateBase
     {
-        protected SamplePlayer Owner { get; private set; }
+        public new SamplePlayer Owner { get; private set; }
 
         public override void Initialize(GenericNetworkStateMachine stateMachine)
         {
             Owner = stateMachine.GetComponent<SamplePlayer>();
+            // Don't forget to set base owner.
             base.Owner = Owner;
         }
     }
 
-    // 待機
+    // Idle state
     [Serializable]
     public class ASSampleIdle : ASSampleBase
     {
@@ -64,7 +71,7 @@ public class SamplePlayer : NetworkObjectBase
         }
     }
 
-    // 歩き
+    // Walk state
     [Serializable]
     public class ASSampleWalk : ASSampleBase
     {
@@ -85,23 +92,44 @@ public class SamplePlayer : NetworkObjectBase
     }
 }
 
-public class SampleController : NetworkBehaviour
+public class SampleGame : NetworkBehaviour
 {
     [SerializeField]
-    private GameObject playerPrefab;
+    private NetworkObject playerPrefab;
     [SerializeField]
-    private GameObject equipmentPrefab;
+    private NetworkObject equipmentPrefab;
     [SerializeField]
-    private GameObject enemyPrefab;
+    private NetworkObject enemyPrefab;
 
     private async void Start()
     {
-        await NetworkObjectSpawner.SpawnAsPlayerAsync(
+        // Initialize NetworkObjectManager.
+        NetworkObjectManager.Instance.Initialize();
+
+        // Add on all players spawned event.
+        NetworkObjectManager.Instance.OnAllPlayersSpawned += () =>
+        {
+            // This callback is invoked when all players are spawned.
+            // etc:
+            //      Start the game.
+        };
+
+        await NetworkObjectSpawner.SpawnAsPlayerObjectAsync(
             playerPrefab, Vector3.zero, Quaternion.identity, NetworkManager.Singleton.LocalClientId);
         await NetworkObjectSpawner.SpawnWithOwnershipAsync(
             equipmentPrefab, Vector3.zero, Quaternion.identity, NetworkManager.Singleton.LocalClientId);
         await NetworkObjectSpawner.SpawnAsync(
             enemyPrefab, Vector3.zero, Quaternion.identity);
+
+        Debug.Log($"Connected client count: {NetworkObjectManager.Instance.ConnectedClientCount}");
+        Debug.Log($"NetworkObjectBases count: {NetworkObjectManager.Instance.NetworkObjectBases.Count}");
+    }
+
+    private new void OnDestroy()
+    {
+        base.OnDestroy();
+
+        NetworkObjectManager.Instance.Shutdown();
     }
 }
 ```

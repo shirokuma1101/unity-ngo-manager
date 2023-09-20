@@ -290,7 +290,7 @@ namespace NGOManager
         {
             if (NetworkManager.Singleton.IsHost)
             {
-                UpdateConnectedClientCountClientRpc(++ConnectedClientCount);
+                UpdateConnectedClientCountClientRpc(NetworkManager.Singleton.ConnectedClientsList.Count);
             }
             else
             {
@@ -302,7 +302,7 @@ namespace NGOManager
         {
             if (NetworkManager.Singleton.IsHost)
             {
-                UpdateConnectedClientCountClientRpc(--ConnectedClientCount);
+                UpdateConnectedClientCountClientRpc(NetworkManager.Singleton.ConnectedClientsList.Count);
             }
             else
             {

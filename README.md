@@ -16,7 +16,7 @@
 
 UnityPackageManagerの`Add package from git URL`から以下のURLを追加
 
-- `https://github.com/shirokuma1101/com.unity.netcode.gameobjects.git?path=/com.unity.netcode.gameobjects#1.5.1-extension`
+- `https://github.com/shirokuma1101/com.unity.netcode.gameobjects.git?path=/com.unity.netcode.gameobjects#1.7.0-extension`
 
 - `https://github.com/shirokuma1101/unity-ngo-manager.git?path=/Assets/unity-ngo-manager`
 

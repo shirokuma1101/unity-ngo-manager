@@ -94,14 +94,14 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.netcode.gameobjects": {
-      "version": "https://github.com/shirokuma1101/com.unity.netcode.gameobjects.git?path=/com.unity.netcode.gameobjects#1.5.1-extension",
+      "version": "https://github.com/shirokuma1101/com.unity.netcode.gameobjects.git?path=/com.unity.netcode.gameobjects#1.7.0-extension",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.nuget.mono-cecil": "1.10.1",
         "com.unity.transport": "1.3.4"
       },
-      "hash": "380fc71cac34a6788862f593aa0b357aa28991be"
+      "hash": "88ecc05d613fe18ba4a10dba0ab0a475bfa7432b"
     },
     "com.unity.nuget.mono-cecil": {
       "version": "1.11.4",

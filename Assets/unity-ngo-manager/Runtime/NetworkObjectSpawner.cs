@@ -71,7 +71,7 @@ namespace NGOManager
             if (NetworkManager.Singleton.IsHost)
             {
                 NetworkObject networkObjectInst = NetworkManager.Instantiate(networkPrefab, position, rotation);
-                networkObjectInst.SpawnAsPlayerObject(clientId, destroyWithScene);
+                networkObjectInst.SpawnWithOwnership(clientId, destroyWithScene);
                 return networkObjectInst.gameObject;
             }
             else

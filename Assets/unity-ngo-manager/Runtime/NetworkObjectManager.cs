@@ -158,8 +158,7 @@ namespace NGOManager
 
         public void Shutdown()
         {
-            networkObjectBases.Clear();
-            networkStateMachines.Clear();
+            ConnectedClientCount = 0;
 
             OnLocalPlayerSpawned = null;
             OnLocalPlayerDespawned = null;
@@ -167,6 +166,10 @@ namespace NGOManager
             OnRemotePlayerDespawned = null;
             OnAllPlayersSpawned = null;
             OnAllPlayersDespawned = null;
+
+            networkObjectBases.Clear();
+            networkStateMachines.Clear();
+            remotePlayers.Clear();
 
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;

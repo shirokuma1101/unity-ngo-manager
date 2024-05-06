@@ -18,10 +18,10 @@ namespace NGOManager
 
         public static void Shutdown() {}
 
-        public static async UniTask<GameObject> SpawnAsync(NetworkObject networkPrefab, bool destroyWithScene = false)
-            => await SpawnAsync(networkPrefab, Vector3.zero, Quaternion.identity, destroyWithScene);
-        public static async UniTask<GameObject> SpawnAsync(NetworkObject networkPrefab, Vector3 position, bool destroyWithScene = false)
-            => await SpawnAsync(networkPrefab, position, Quaternion.identity, destroyWithScene);
+        public static UniTask<GameObject> SpawnAsync(NetworkObject networkPrefab, bool destroyWithScene = false)
+            => SpawnAsync(networkPrefab, Vector3.zero, Quaternion.identity, destroyWithScene);
+        public static UniTask<GameObject> SpawnAsync(NetworkObject networkPrefab, Vector3 position, bool destroyWithScene = false)
+            => SpawnAsync(networkPrefab, position, Quaternion.identity, destroyWithScene);
         public static async UniTask<GameObject> SpawnAsync(NetworkObject networkPrefab, Vector3 position, Quaternion rotation, bool destroyWithScene = false)
         {
             if (NetworkManager.Singleton.IsHost)
@@ -40,10 +40,10 @@ namespace NGOManager
             }
         }
 
-        public static async UniTask<GameObject> SpawnAsPlayerObjectAsync(NetworkObject networkPrefab, ulong clientId, bool destroyWithScene = false)
-            => await SpawnAsPlayerObjectAsync(networkPrefab, Vector3.zero, Quaternion.identity, clientId, destroyWithScene);
-        public static async UniTask<GameObject> SpawnAsPlayerObjectAsync(NetworkObject networkPrefab, Vector3 position, ulong clientId, bool destroyWithScene = false)
-            => await SpawnAsPlayerObjectAsync(networkPrefab, position, Quaternion.identity, clientId, destroyWithScene);
+        public static UniTask<GameObject> SpawnAsPlayerObjectAsync(NetworkObject networkPrefab, ulong clientId, bool destroyWithScene = false)
+            => SpawnAsPlayerObjectAsync(networkPrefab, Vector3.zero, Quaternion.identity, clientId, destroyWithScene);
+        public static UniTask<GameObject> SpawnAsPlayerObjectAsync(NetworkObject networkPrefab, Vector3 position, ulong clientId, bool destroyWithScene = false)
+            => SpawnAsPlayerObjectAsync(networkPrefab, position, Quaternion.identity, clientId, destroyWithScene);
         public static async UniTask<GameObject> SpawnAsPlayerObjectAsync(NetworkObject networkPrefab, Vector3 position, Quaternion rotation, ulong clientId, bool destroyWithScene = false)
         {
             if (NetworkManager.Singleton.IsHost)
@@ -62,10 +62,10 @@ namespace NGOManager
             }
         }
 
-        public static async UniTask<GameObject> SpawnWithOwnershipAsync(NetworkObject networkPrefab, ulong clientId, bool destroyWithScene = false)
-            => await SpawnWithOwnershipAsync(networkPrefab, Vector3.zero, Quaternion.identity, clientId, destroyWithScene);
-        public static async UniTask<GameObject> SpawnWithOwnershipAsync(NetworkObject networkPrefab, Vector3 position, ulong clientId, bool destroyWithScene = false)
-            => await SpawnWithOwnershipAsync(networkPrefab, position, Quaternion.identity, clientId, destroyWithScene);
+        public static UniTask<GameObject> SpawnWithOwnershipAsync(NetworkObject networkPrefab, ulong clientId, bool destroyWithScene = false)
+            => SpawnWithOwnershipAsync(networkPrefab, Vector3.zero, Quaternion.identity, clientId, destroyWithScene);
+        public static UniTask<GameObject> SpawnWithOwnershipAsync(NetworkObject networkPrefab, Vector3 position, ulong clientId, bool destroyWithScene = false)
+            => SpawnWithOwnershipAsync(networkPrefab, position, Quaternion.identity, clientId, destroyWithScene);
         public static async UniTask<GameObject> SpawnWithOwnershipAsync(NetworkObject networkPrefab, Vector3 position, Quaternion rotation, ulong clientId, bool destroyWithScene = false)
         {
             if (NetworkManager.Singleton.IsHost)

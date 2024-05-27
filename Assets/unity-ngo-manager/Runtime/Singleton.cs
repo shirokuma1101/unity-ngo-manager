@@ -56,7 +56,7 @@ namespace NGOManager.Utility.Singleton
     /// class BaseClass : MonoBehaviour { }
     /// class DerivedClass : BaseClass
     /// {
-    ///     public static DerivedClass Instance => SingletonAttacher<DerivedClass>.Instantce;
+    ///     public static DerivedClass Instance => SingletonAttacher<DerivedClass>.Instance;
     /// }
     /// </code>
     /// </example>

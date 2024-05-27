@@ -1,5 +1,5 @@
 {
-    "name": "com.shirokuma1101.unm.runtime",
+    "name": "UNM.Runtime",
     "rootNamespace": "",
     "references": [
         "UniTask",
